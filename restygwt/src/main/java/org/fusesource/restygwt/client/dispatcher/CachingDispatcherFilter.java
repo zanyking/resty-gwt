@@ -40,7 +40,7 @@ public class CachingDispatcherFilter implements DispatcherFilter {
     /**
      * one instance of {@link QueueableCacheStorage}
      */
-    private QueueableCacheStorage cacheStorage;
+    private QueueableCacheStorage<Response> cacheStorage;
 
     /**
      * where to get a callback from. gives us the ability to use
@@ -53,7 +53,7 @@ public class CachingDispatcherFilter implements DispatcherFilter {
      * @param cacheStorage
      * @param cf
      */
-    public CachingDispatcherFilter(final QueueableCacheStorage cacheStorage,
+    public CachingDispatcherFilter(final QueueableCacheStorage<Response> cacheStorage,
             final CallbackFactory cf) {
         this.cacheStorage = cacheStorage;
         this.callbackFactory = cf;
@@ -77,23 +77,10 @@ public class CachingDispatcherFilter implements DispatcherFilter {
         final CacheKey cacheKey = cacheKey(builder);
 
         if (cacheKey != null) {
-            final Response cachedResponse = cacheStorage.getResultOrReturnNull(cacheKey);
+            final Object cachedResponse = cacheStorage.getIfAny(cacheKey);
             if (cachedResponse != null) {
                 //case 1: we got a result in cache => return it...
-                if (LogConfiguration.loggingIsEnabled()) {
-                    Logger.getLogger(Dispatcher.class.getName())
-                            .info("already got a cached response for: " + builder.getHTTPMethod() + " "
-                            + builder.getUrl());
-                }
-                // onResponseReceived can be time consuming and can manipulate the DOM
-                // deferring the command keeps the async behaviour of this method call
-                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-                    
-                    @Override
-                    public void execute() {
-                        builder.getCallback().onResponseReceived(null, cachedResponse);
-                    }
-                });
+            	handleCacheHitted(cacheKey, builder);
                 return false;
             }  else {
                 final RequestCallback callback = callbackFactory.createCallback(method);
@@ -140,5 +127,24 @@ public class CachingDispatcherFilter implements DispatcherFilter {
             builder.setCallback(callbackFactory.createCallback(method));
             return true;// continue filtering
         }
+    }
+    
+    private void handleCacheHitted(final CacheKey cacheKey, final RequestBuilder builder){
+    	 //case 1: we got a result in cache => return it...
+        if (LogConfiguration.loggingIsEnabled()) {
+            Logger.getLogger(Dispatcher.class.getName())
+                    .info("already got a cached response for: " + builder.getHTTPMethod() + " "
+                    + builder.getUrl());
+        }
+        // onResponseReceived can be time consuming and can manipulate the DOM
+        // deferring the command keeps the async behaviour of this method call
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+            
+            @Override
+            public void execute() {
+            	final Response cachedResponse = cacheStorage.getIfAny(cacheKey);
+                builder.getCallback().onResponseReceived(null, cachedResponse);
+            }
+        });
     }
 }

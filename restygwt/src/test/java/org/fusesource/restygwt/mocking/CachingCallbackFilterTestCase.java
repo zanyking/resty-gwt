@@ -72,7 +72,7 @@ public class CachingCallbackFilterTestCase extends TestCase {
         
         EasyMock.verify(response, method);
         // hashCode should be good enough
-        assertEquals(response.hashCode(), this.storage.getResultOrReturnNull(key).hashCode());
+        assertEquals(response.hashCode(), this.storage.getIfAny(key).hashCode());
     }
 
     public void testNoCallbacksError() throws Exception{
@@ -84,7 +84,7 @@ public class CachingCallbackFilterTestCase extends TestCase {
         filter.filter(method, response, null);
         
         EasyMock.verify(response, method);
-        assertNull(this.storage.getResultOrReturnNull(key));
+        assertNull(this.storage.getIfAny(key));
     }
 
     public void testManyCallbacksSuccess() throws Exception{
@@ -117,6 +117,6 @@ public class CachingCallbackFilterTestCase extends TestCase {
             EasyMock.verify(rc);
         }
         // hashCode should be good enough
-        assertEquals(response.hashCode(), this.storage.getResultOrReturnNull(key).hashCode());
+        assertEquals(response.hashCode(), this.storage.getIfAny(key).hashCode());
     }
 }

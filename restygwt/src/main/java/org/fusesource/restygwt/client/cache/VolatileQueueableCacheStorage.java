@@ -22,11 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.google.gwt.http.client.Response;
 import com.google.gwt.logging.client.LogConfiguration;
 import com.google.gwt.user.client.Timer;
 
-public class VolatileQueueableCacheStorage extends DefaultQueueableCacheStorage {
+public class VolatileQueueableCacheStorage<T> extends DefaultQueueableCacheStorage<T> {
     
     /**
      * how long will a cachekey be allowed to exist
@@ -44,7 +43,7 @@ public class VolatileQueueableCacheStorage extends DefaultQueueableCacheStorage 
     
     private final List<Timer> timers = new ArrayList<Timer>();
 
-    protected void putResult(final CacheKey key, final Response response, final String scope) {
+    protected void putResult(final CacheKey key, final T response, final String scope) {
         final Timer t = new Timer() {
             public void run() {
                 try {

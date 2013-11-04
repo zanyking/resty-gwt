@@ -38,7 +38,7 @@ import com.google.gwt.logging.client.LogConfiguration;
  * @author kristian
  *
  */
-public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
+public class DefaultQueueableCacheStorage<T> implements QueueableCacheStorage<T> {
 
     public static class ResponseWrapper extends Response {
 
@@ -110,20 +110,21 @@ public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
      * 
      * invalidated values will be dropped by timer
      */
-    protected final Map<String, HashMap<CacheKey, Response>> cache = new HashMap<String, HashMap<CacheKey, Response>>();
+    protected final Map<String, HashMap<CacheKey, T>> cache = new HashMap<String, HashMap<CacheKey, T>>();
 
     private final Map<CacheKey, List<RequestCallback>> pendingCallbacks = new HashMap<CacheKey, List<RequestCallback>>();
 
-    public Response getResultOrReturnNull(CacheKey key) {
-        return getResultOrReturnNull(key, DEFAULT_SCOPE);
+    public T getIfAny(CacheKey key) {
+        return getIfAny(key, DEFAULT_SCOPE);
     }
 
-    public Response getResultOrReturnNull(final CacheKey key, final String scope) {
-        final HashMap<CacheKey, Response> scoped = cache.get(scope);
+    @SuppressWarnings("unchecked")
+	public T getIfAny(final CacheKey key, final String scope) {
+        final HashMap<CacheKey, T> scoped = cache.get(scope);
         if (null != scoped) {
-            Response result = scoped.get(key);
-            if (result != null) {
-                return new ResponseWrapper(result);
+            T result = scoped.get(key);
+            if (result != null && result instanceof Response) {
+                return (T) new ResponseWrapper((Response)result);
             }
         }
 
@@ -131,16 +132,16 @@ public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
     }
 
     @Override
-    public void putResult(final CacheKey key, final Response response) {
+    public void putResult(final CacheKey key, final T response) {
         putResult(key, response, DEFAULT_SCOPE);
     }
 
-    protected void putResult(final CacheKey key, final Response response,
+    protected void putResult(final CacheKey key, final T response,
             final String scope) {
-        HashMap<CacheKey, Response> scoped = cache.get(scope);
+        HashMap<CacheKey, T> scoped = cache.get(scope);
 
         if (null == scoped) {
-            cache.put(scope, new HashMap<CacheKey, Response>());
+            cache.put(scope, new HashMap<CacheKey, T>());
             scoped = cache.get(scope);
         }
 
@@ -148,7 +149,7 @@ public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
     }
 
     @Override
-    public void putResult(CacheKey key, Response response, String... scopes) {
+    public void putResult(CacheKey key, T response, String... scopes) {
         if (null == scopes) {
             putResult(key, response);
             return;
@@ -196,7 +197,7 @@ public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
 
     @Override
     public void purge(final String scope) {
-        HashMap<CacheKey, Response> scoped = cache.get(scope);
+        HashMap<CacheKey, T> scoped = cache.get(scope);
 
         // TODO handle timers in scoping too
         if (null != scoped)
@@ -224,7 +225,7 @@ public class DefaultQueueableCacheStorage implements QueueableCacheStorage {
                             + scope + "\"");
         }
 
-        HashMap<CacheKey, Response> scoped = cache.get(scope);
+        HashMap<CacheKey, T> scoped = cache.get(scope);
         if (null != scoped)
             scoped.remove(key);
     }

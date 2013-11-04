@@ -34,13 +34,13 @@ import com.google.gwt.junit.GWTMockUtilities;
 
 public class DefaultQueuableCacheStorageTestCase extends TestCase {
 
-    private DefaultQueueableCacheStorage storage;
+    private DefaultQueueableCacheStorage<Response> storage;
     
     protected void setUp() throws Exception{
         super.setUp();
         GWTMockUtilities.disarm();
 
-        this.storage = new DefaultQueueableCacheStorage();
+        this.storage = new DefaultQueueableCacheStorage<Response>();
     }
     
     protected void tearDown() {
@@ -56,18 +56,18 @@ public class DefaultQueuableCacheStorageTestCase extends TestCase {
         storage.putResult(key, resp);
         storage.putResult(secondKey, resp);
         
-        assertNull(storage.getResultOrReturnNull(new SimpleCacheKey("unknown")));
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(key)).response);
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(secondKey)).response);
+        assertNull(storage.getIfAny(new SimpleCacheKey("unknown")));
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(key)).response);
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(secondKey)).response);
         
         storage.remove(key);
-        assertNull(storage.getResultOrReturnNull(key));
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(secondKey)).response);
+        assertNull(storage.getIfAny(key));
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(secondKey)).response);
         
         // now purge
         storage.purge();
-        assertNull(storage.getResultOrReturnNull(key));
-        assertNull(storage.getResultOrReturnNull(secondKey));
+        assertNull(storage.getIfAny(key));
+        assertNull(storage.getIfAny(secondKey));
         
         EasyMock.verify(resp);
     }
@@ -89,29 +89,29 @@ public class DefaultQueuableCacheStorageTestCase extends TestCase {
         storage.putResult(secondScopedKey, scopedResp, scope);
         
         // check the cache content
-        assertNull(storage.getResultOrReturnNull(new SimpleCacheKey("unknown")));
-        assertNull(storage.getResultOrReturnNull(new SimpleCacheKey("unknown"), scope));
-        assertNull(storage.getResultOrReturnNull(key, scope));
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(key)).response);
-        assertEquals(scopedResp, ((ResponseWrapper)storage.getResultOrReturnNull(scopedKey, scope)).response);
-        assertEquals(scopedResp, ((ResponseWrapper)storage.getResultOrReturnNull(secondScopedKey, scope)).response);
+        assertNull(storage.getIfAny(new SimpleCacheKey("unknown")));
+        assertNull(storage.getIfAny(new SimpleCacheKey("unknown"), scope));
+        assertNull(storage.getIfAny(key, scope));
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(key)).response);
+        assertEquals(scopedResp, ((ResponseWrapper)storage.getIfAny(scopedKey, scope)).response);
+        assertEquals(scopedResp, ((ResponseWrapper)storage.getIfAny(secondScopedKey, scope)).response);
 
         // wrong key shall leave things as they are
         storage.remove(key, scope);
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(key)).response);
-        assertEquals(scopedResp, ((ResponseWrapper)storage.getResultOrReturnNull(scopedKey, scope)).response);
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(key)).response);
+        assertEquals(scopedResp, ((ResponseWrapper)storage.getIfAny(scopedKey, scope)).response);
 
         // remove scoped key and leave unscope cache as it is
         storage.remove(scopedKey, scope);
-        assertNull(storage.getResultOrReturnNull(scopedKey, scope));
-        assertEquals(scopedResp, ((ResponseWrapper)storage.getResultOrReturnNull(secondScopedKey, scope)).response);
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(key)).response);
+        assertNull(storage.getIfAny(scopedKey, scope));
+        assertEquals(scopedResp, ((ResponseWrapper)storage.getIfAny(secondScopedKey, scope)).response);
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(key)).response);
         
         // now purge
         storage.purge(scope);
-        assertNull(storage.getResultOrReturnNull(scopedKey, scope));
-        assertNull(storage.getResultOrReturnNull(secondScopedKey, scope));
-        assertEquals(resp, ((ResponseWrapper)storage.getResultOrReturnNull(key)).response);
+        assertNull(storage.getIfAny(scopedKey, scope));
+        assertNull(storage.getIfAny(secondScopedKey, scope));
+        assertEquals(resp, ((ResponseWrapper)storage.getIfAny(key)).response);
         
         EasyMock.verify(resp);
         EasyMock.verify(scopedResp);
@@ -152,7 +152,7 @@ public class DefaultQueuableCacheStorageTestCase extends TestCase {
         
         storage.putResult(key, resp);
         
-        assertNotNull(storage.getResultOrReturnNull(key).getHeader(QueueableCacheStorage.RESTY_CACHE_HEADER));
+        assertNotNull(storage.getIfAny(key).getHeader(QueueableCacheStorage.RESTY_CACHE_HEADER));
         
         EasyMock.verify(resp);
     }

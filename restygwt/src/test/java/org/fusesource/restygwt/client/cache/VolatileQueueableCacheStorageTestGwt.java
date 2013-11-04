@@ -75,12 +75,12 @@ public class VolatileQueueableCacheStorageTestGwt extends GWTTestCase {
 
         storage.putResult(key, resp);
         // hashCode should be good enough
-        assertEquals(resp.hashCode(), storage.getResultOrReturnNull(key).hashCode());
+        assertEquals(resp.hashCode(), storage.getIfAny(key).hashCode());
         Timer timer = new Timer() {
 
             @Override
             public void run() {
-                assertNull(storage.getResultOrReturnNull(key));   
+                assertNull(storage.getIfAny(key));   
                 finishTest();
             }
             
@@ -96,8 +96,8 @@ public class VolatileQueueableCacheStorageTestGwt extends GWTTestCase {
           
         storage.putResult(key, resp);
         // hashCode should be good enough
-        assertEquals(resp.hashCode(), storage.getResultOrReturnNull(key).hashCode());
+        assertEquals(resp.hashCode(), storage.getIfAny(key).hashCode());
         storage.purge();
-        assertNull(storage.getResultOrReturnNull(key));
+        assertNull(storage.getIfAny(key));
     }
 }

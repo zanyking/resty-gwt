@@ -19,9 +19,9 @@
 package org.fusesource.restygwt.client.cache;
 
 public interface CacheStorage<T> {
-    public T getResultOrReturnNull(final CacheKey key);
+    public T getIfAny(final CacheKey key);
 
-    public T getResultOrReturnNull(final CacheKey key, final String scope);
+    public T getIfAny(final CacheKey key, final String scope);
 
     /**
      * default put method

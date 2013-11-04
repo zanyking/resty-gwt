@@ -29,7 +29,7 @@ import com.google.gwt.http.client.Response;
  *
  * @author abalke
  */
-public interface QueueableCacheStorage extends CacheStorage<Response> {
+public interface QueueableCacheStorage<T> extends CacheStorage<T> {
 
     public static final String RESTY_CACHE_HEADER = "X-Resty-Cache";
 
